@@ -1,10 +1,13 @@
 import React from 'react'
-import renderer from 'react-test-renderer'
-import Main from '../../src/screens/Main.tsx'
+import { cleanup, render } from '@testing-library/react-native'
+import Main from '../../src/screens/Main'
+
+jest.useFakeTimers()
 
 describe('<Main />', () => {
+  afterEach(() => cleanup())
   it('renders correctly', () => {
-    const tree = renderer.create(<Main />).toJSON()
+    const tree = render(<Main />).toJSON()
     expect(tree).toMatchSnapshot()
   })
 })

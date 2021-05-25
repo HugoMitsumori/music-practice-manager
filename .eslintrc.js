@@ -7,6 +7,9 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'airbnb',
   ],
+  globals: {
+    JSX: true,
+  },
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaFeatures: {
