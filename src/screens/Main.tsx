@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { StatusBar } from 'expo-status-bar'
-import { StyleSheet, View } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {
+  Keyboard,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native'
+import {
   Button,
+  Checkbox,
   Text,
   TextInput,
   Provider as PaperProvider,
@@ -11,14 +17,20 @@ import {
 
 const LIST_KEY = 'list'
 
+interface ListItem {
+  description: string,
+  checked: boolean,
+}
+
 const Main = (): JSX.Element => {
-  const [list, setList] = useState([] as string[])
-  const [listItem, setListItem] = useState('')
+  const [list, setList] = useState([] as Array<ListItem>)
+  const [itemDescription, setItemDescription] = useState('')
 
   const addCurrentItem = () => {
-    if (listItem) {
-      setList((currentList: string[]) => [...currentList, listItem])
-      setListItem('')
+    if (itemDescription) {
+      const newListItem = { description: itemDescription, checked: false }
+      setList((currentList: Array<ListItem>) => [...currentList, newListItem])
+      setItemDescription('')
     }
   }
 
@@ -30,7 +42,7 @@ const Main = (): JSX.Element => {
     }
   }
 
-  const getSavedList = async (): Promise<Array<string>> => {
+  const getSavedList = async (): Promise<Array<ListItem>> => {
     let value
     try {
       value = await AsyncStorage.getItem(LIST_KEY)
@@ -43,6 +55,14 @@ const Main = (): JSX.Element => {
     }
 
     return []
+  }
+
+  const toggleListItem = (itemIndex: number): void => {
+    setList((currentList: Array<ListItem>) => {
+      const [...updatedList] = currentList
+      updatedList[itemIndex].checked = !updatedList[itemIndex].checked
+      return updatedList
+    })
   }
 
   useEffect(() => {
@@ -61,22 +81,29 @@ const Main = (): JSX.Element => {
 
   return (
     <PaperProvider>
-      <View style={styles.container}>
-        <View style={styles.actionArea}>
-          <Text>Add items to the list!</Text>
-          <TextInput label="Item" value={listItem} onChangeText={setListItem} />
-          <Button mode="contained" icon="plus" onPress={addCurrentItem}>
-            Add Item
-          </Button>
-          <Button mode="contained" color="red" onPress={() => setList([])}>
-            Clear List
-          </Button>
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <View style={styles.container}>
+          <View style={styles.actionArea}>
+            <Text>Add items to the list!</Text>
+            <TextInput label="Item" value={itemDescription} onChangeText={setItemDescription} />
+            <Button mode="contained" icon="plus" onPress={addCurrentItem}>
+              Add Item
+            </Button>
+            <Button mode="contained" color="red" onPress={() => setList([])}>
+              Clear List
+            </Button>
+          </View>
+          <View style={styles.list}>
+            {list.map((item: ListItem, itemIndex: number) => (
+              <View key={item.description} style={styles.listItem}>
+                <Text>{item.description}</Text>
+                <Checkbox status={item.checked ? 'checked' : 'unchecked'} onPress={() => toggleListItem(itemIndex)} />
+              </View>
+            ))}
+          </View>
+          <StatusBar style="auto" />
         </View>
-        {list.map((item: string) => (
-          <Text key={item} style={styles.listItem}>{item}</Text>
-        ))}
-        <StatusBar style="auto" />
-      </View>
+      </TouchableWithoutFeedback>
     </PaperProvider>
   )
 }
@@ -93,7 +120,13 @@ const styles = StyleSheet.create({
     height: 200,
     justifyContent: 'space-around',
   },
+  list: {
+    width: '80%',
+  },
   listItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginVertical: 5,
   },
 })
