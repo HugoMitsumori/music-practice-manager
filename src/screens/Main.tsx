@@ -9,27 +9,22 @@ import {
 } from 'react-native'
 import {
   Button,
-  Checkbox,
   Text,
   TextInput,
   Provider as PaperProvider,
 } from 'react-native-paper'
+import PracticeListItem from '../components/PracticeListItem'
 
 const LIST_KEY = 'list'
 
-interface ListItem {
-  description: string,
-  checked: boolean,
-}
-
 const Main = (): JSX.Element => {
-  const [list, setList] = useState([] as Array<ListItem>)
+  const [list, setList] = useState([] as Array<PracticeTask>)
   const [itemDescription, setItemDescription] = useState('')
 
   const addCurrentItem = () => {
     if (itemDescription) {
-      const newListItem = { description: itemDescription, checked: false }
-      setList((currentList: Array<ListItem>) => [...currentList, newListItem])
+      const newListItem: PracticeTask = { description: itemDescription, completed: false }
+      setList((currentList: Array<PracticeTask>) => [...currentList, newListItem])
       setItemDescription('')
     }
   }
@@ -42,7 +37,7 @@ const Main = (): JSX.Element => {
     }
   }
 
-  const getSavedList = async (): Promise<Array<ListItem>> => {
+  const getSavedList = async (): Promise<Array<PracticeTask>> => {
     let value
     try {
       value = await AsyncStorage.getItem(LIST_KEY)
@@ -58,9 +53,9 @@ const Main = (): JSX.Element => {
   }
 
   const toggleListItem = (itemIndex: number): void => {
-    setList((currentList: Array<ListItem>) => {
+    setList((currentList: Array<PracticeTask>) => {
       const [...updatedList] = currentList
-      updatedList[itemIndex].checked = !updatedList[itemIndex].checked
+      updatedList[itemIndex].completed = !updatedList[itemIndex].completed
       return updatedList
     })
   }
@@ -94,11 +89,12 @@ const Main = (): JSX.Element => {
             </Button>
           </View>
           <View style={styles.list}>
-            {list.map((item: ListItem, itemIndex: number) => (
-              <View key={item.description} style={styles.listItem}>
-                <Text>{item.description}</Text>
-                <Checkbox status={item.checked ? 'checked' : 'unchecked'} onPress={() => toggleListItem(itemIndex)} />
-              </View>
+            {list.map((item: PracticeTask, itemIndex: number) => (
+              <PracticeListItem
+                key={item.description}
+                item={item}
+                onToggle={() => toggleListItem(itemIndex)}
+              />
             ))}
           </View>
           <StatusBar style="auto" />
@@ -122,12 +118,6 @@ const styles = StyleSheet.create({
   },
   list: {
     width: '80%',
-  },
-  listItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginVertical: 5,
   },
 })
 
